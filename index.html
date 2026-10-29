@@ -14,7 +14,14 @@ const UNIVERSITIES=[{"name": "University of North Texas", "short": "UNT", "city"
 const STORE='transferPortal_v5';const defaults={degree:'',field:'',credits:'',timing:'',major:'',route:'',code:'',occupation:'',compareOccupations:[],comparisonState:'TX',universities:['','',''],answers:{},questions:'',nextSteps:''};let state={...defaults};try{const old=JSON.parse(localStorage.getItem(STORE)||'{}');state={...state,...old};if(!Array.isArray(state.universities))state.universities=['','',''];if(!Array.isArray(state.compareOccupations))state.compareOccupations=[]}catch(e){}
 const $=id=>document.getElementById(id),safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function persist(){try{localStorage.setItem(STORE,JSON.stringify(state))}catch(e){notify('Browser storage unavailable. Please export a backup.')}}function notify(s){let t=$('toast');t.textContent=s;t.style.display='block';setTimeout(()=>t.style.display='none',3000)}
-function go(id){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.step').forEach(x=>x.classList.toggle('active',x.dataset.go===id));if(id==='plan')renderPlan();if(id==='explore')renderRoute();window.scrollTo({top:0,behavior:'instant'})}
+function go(id){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.step').forEach(x=>x.classList.toggle('active',x.dataset.go===id));if(id==='plan')renderPlan();if(id==='explore')renderRoute();// Keep the sticky stage navigation visible instead of returning to the banner.
+  // A zero-delay frame lets the newly activated panel finish layout first.
+  requestAnimationFrame(()=>{
+    const nav=document.querySelector('nav.top');
+    if(!nav)return;
+    const navTop=nav.getBoundingClientRect().top+window.scrollY;
+    window.scrollTo({top:navTop,behavior:'instant'});
+  });}
 document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
 ['degree','field','credits','timing','major','questions','nextSteps'].forEach(id=>{let el=$(id);el.value=state[id]||'';el.addEventListener('input',()=>{state[id]=el.value;persist();if(id==='degree')degreeGuidance();if(id==='field')suggestMajors();if(id==='major'){renderComparison();}})});
 function degreeGuidance(){let d=state.degree; $('degreeGuidance').innerHTML=(d==='AAS'||d==='BAT / BAS / BSN')?'<div class="alert">This is a workforce pathway. Transfer options vary; discuss the specific route with a Collin academic adviser and the receiving university.</div>':d==='AA'||d==='AS'||d==='AAT'?'AA, AS, and AAT are academic transfer pathways. A specific university may still have additional requirements.':''}
