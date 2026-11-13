@@ -1,0 +1,26 @@
+name: Transfer Portal link audit
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test university URLs
+        run: python scripts/check_links.py
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: transfer-portal-link-audit-report
+          path: audit-results/
+          if-no-files-found: warn
+          retention-days: 30
